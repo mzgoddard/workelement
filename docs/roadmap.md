@@ -1,0 +1,27 @@
+- [ ] Performance Tracking
+- [ ] Template
+- [ ] Environments
+  - [ ] Web Support
+  - [ ] Deno Support
+  - [ ] Bun Support
+  - [ ] Node Support
+- [ ] Lazy Task Initialization
+- [ ] Job Collection Scope
+- [ ] Input Helpers
+- [ ] Slug Helpers
+- [ ] Middleware
+- [ ] File Lock
+- [ ] Watch Mode
+- [ ] Job Prediction
+- [ ] Progress Events
+- [ ] Serialization
+  - [ ] XML
+  - [ ] Binary
+- [ ] Worker
+- [ ] Networking
+- [ ] Large Memory Objects
+- [ ] Large File Slices
+- [ ] Parsing
+  - [ ] String Parsing
+  - [ ] Byte Parsing
+  - [ ] Chunk Parsing

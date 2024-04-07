@@ -1,9 +1,16 @@
 {
-  "name": "workelement",
+  "name": "@mzgoddard/workelement",
   "version": "0.0.0",
   "description": "Create structured objects for some work and run them.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest"
   },
-  "author": "Z Goddard <mzgoddard@gmail.com>"
+  "author": "Z Goddard <mzgoddard@gmail.com>",
+  "devDependencies": {
+    "@types/node": "^20.12.4",
+    "@vitest/ui": "^1.4.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.4",
+    "vitest": "^1.4.0"
+  }
 }

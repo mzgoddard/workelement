@@ -1,0 +1,46 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`jobfs > readSource 1`] = `
+{
+  "__input": [
+    PathBase {
+      "relativeTo": PathBase {
+        "relativeTo": PathBase {
+          "relativeTo": PathHandleBase {},
+          "subpath": "src/tasks",
+        },
+        "subpath": "__fixtures__",
+      },
+      "subpath": "emptyobject.json",
+    },
+  ],
+  "__task": {
+    "deriveInput": [Function],
+    "deriveOutput": [Function],
+    "handle": [Function],
+    "name": "readSource",
+    "slug": [Function],
+    "slugerize": [Function],
+  },
+  Symbol(workelement.slugify): [Function],
+}
+`;
+
+exports[`jobfs > readSource 2`] = `
+{
+  "__slug": "readSource(path(path(path(absolutePath(package:@mzgoddard/workelement)/src/tasks)/__fixtures__)/emptyobject.json))",
+  Symbol(workelement.slugify): [Function],
+  Symbol(nodejs.util.inspect.custom): [Function],
+}
+`;
+
+exports[`jobfs > readSource 3`] = `{}`;
+
+exports[`jobfs > readSource 4`] = `
+{
+  "__slug": "readSource(path(path(path(absolutePath(package:@mzgoddard/workelement)/src/tasks)/__fixtures__)/emptyobject.json))",
+  "isOutput": true,
+  Symbol(workelement.slugify): [Function],
+  Symbol(nodejs.util.inspect.custom): [Function],
+}
+`;

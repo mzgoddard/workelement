@@ -1,5 +1,6 @@
 import {
   MaySlug,
+  SLUGIFY,
   Slug,
   SlugMap,
   SlugOutputStruct,
@@ -13,7 +14,7 @@ import {
 import { isPromise } from "util/types";
 import { microtaskLock } from "../support/microtask-helper";
 import { abbreviate } from "../support/abbreviate";
-import { Result, ResultError, result, resultError } from "./Result";
+import { Result, ResultError, result, resultError } from "../support/Result";
 
 export interface JobHandle<
   Input extends [] | Sluggable[] = any,
@@ -167,13 +168,16 @@ function initTask<Handle extends JobHandle>(
             )
           )
         )),
-        ["toSlug", () => slug],
+        [SLUGIFY, () => slug],
       ]));
   const initializedSlugerize: JobOptionsOf<Handle>["slugerize"] =
     maybeSlugerize ??
     ((output, slug) => {
       if (output && typeof output === "object" && !Array.isArray(output)) {
-        return { ...output, toSlug: () => SlugOutputStruct(slug) };
+        return Object.create(output, {
+          [SLUGIFY]: { value: () => SlugOutputStruct(slug) },
+        });
+        // return { ...output, toSlug: () => SlugOutputStruct(slug) };
       } else if (output === undefined || output === null) {
         return SlugOutputStruct(slug);
       }
@@ -197,7 +201,7 @@ export function task<Handle extends JobHandle>(
   return Object.assign((...input) => ({
     __task: task,
     __input: input,
-    toSlug() {
+    [SLUGIFY]() {
       return task.slug(...input);
     },
   }));

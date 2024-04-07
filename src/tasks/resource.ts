@@ -1,7 +1,14 @@
 import { defer } from "../support/defer";
-import { Guard, Job, addGuard, getThisContext, run, task } from "../core/jobcall";
+import {
+  Guard,
+  Job,
+  addGuard,
+  getThisContext,
+  run,
+  task,
+} from "../core/jobcall";
 import { Semaphore, SemaphoreGuard } from "../support/semaphore";
-import { MaySlug, slug } from "../core/slug";
+import { MaySlug, SLUGIFY, slug } from "../core/slug";
 
 // interface Resource<T> {
 //   item: T;
@@ -24,7 +31,7 @@ import { MaySlug, slug } from "../core/slug";
 interface ChildProcessResource extends MaySlug {}
 
 export const ChildProcessResourceStruct = (): ChildProcessResource => ({
-  toSlug: () => slug`childProcessResource`,
+  [SLUGIFY]: () => slug`childProcessResource`,
 });
 
 interface ChildProcessGuard extends Guard {}

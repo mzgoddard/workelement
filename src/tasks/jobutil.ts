@@ -11,7 +11,14 @@ import {
   addDependencies,
   announceChanges,
 } from "../core/jobcall";
-import { MaySlug, Slug, SlugArray, isMaySlug, slug } from "../core/slug";
+import {
+  MaySlug,
+  SLUGIFY,
+  Slug,
+  SlugArray,
+  isMaySlug,
+  slug,
+} from "../core/slug";
 import { md5 } from "../support/md5";
 import { abbreviate } from "../support/abbreviate";
 import { SourceObject } from "../structs/SourceObject";
@@ -20,7 +27,7 @@ import { FunctionObject, isFunctionObject } from "../structs/FunctionObject";
 export function source(content: string): SourceObject {
   return {
     content,
-    toSlug() {
+    [SLUGIFY]() {
       return slug`source(md5#${md5(content)})`;
     },
   };
@@ -109,7 +116,7 @@ export const func = <F extends (...args: any[]) => any>(
   return {
     name,
     func,
-    toSlug() {
+    [SLUGIFY]() {
       return slug`func#${name}#md5#${md5(func.toString())}`;
     },
   };
@@ -145,7 +152,7 @@ export const bind = <
 ): FunctionObject<Bound<F, P>> => ({
   name,
   func: ((...lateArgs) => func.func(...args, ...lateArgs)) as F,
-  toSlug: () => slug`bound(${func}, ${SlugArray(args.map(Slug))})`,
+  [SLUGIFY]: () => slug`bound(${func}, ${SlugArray(args.map(Slug))})`,
 });
 
 export const call = task(

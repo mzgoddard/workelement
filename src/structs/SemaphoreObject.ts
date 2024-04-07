@@ -1,6 +1,5 @@
-import { MaySlug, slug } from "../core/slug";
+import { MaySlug, SLUGIFY, slug } from "../core/slug";
 import { Semaphore } from "../support/semaphore";
-
 
 export interface SemaphoreObject extends MaySlug {
   name: string;
@@ -13,5 +12,5 @@ export const SemaphoreStruct = (
 ): SemaphoreObject => ({
   name,
   semaphore,
-  toSlug: () => slug`semaphoreStruct(${name})`,
+  [SLUGIFY]: () => slug`semaphoreStruct(${name})`,
 });

@@ -1,9 +1,11 @@
 import { inspect } from "util";
 import { abbreviate } from "../support/abbreviate";
 
+export const SLUGIFY: unique symbol = Symbol.for("workelement.slugify");
+
 type RawSlug = string;
 export interface MaySlug {
-  toSlug(): Slug;
+  [SLUGIFY](): Slug;
 }
 export interface Slug extends MaySlug {
   __slug: RawSlug;
@@ -39,7 +41,7 @@ export function isDependency(maybe: Slug): boolean {
 function SlugStruct(__slug: RawSlug): Slug {
   return {
     __slug,
-    toSlug() {
+    [SLUGIFY]() {
       return Slug(__slug);
     },
     [inspect.custom]() {
@@ -60,7 +62,7 @@ export function Slug(value: RawSlug | Slug | Sluggable): Slug {
   if (isSlug(value)) {
     return value;
   } else if (isMaySlug(value)) {
-    return value.toSlug();
+    return value[SLUGIFY]();
   }
   return SlugStruct(String(value));
 }
@@ -73,17 +75,17 @@ function SlugLazy(handle: () => RawSlug): Slug {
     get __slug() {
       return handle();
     },
-    toSlug() {
+    [SLUGIFY]() {
       return SlugStruct(handle());
     },
   };
 }
 export function isMaySlug(maybe: unknown): maybe is MaySlug {
-  return Boolean(maybe && (maybe as MaySlug).toSlug);
+  return Boolean(maybe && (maybe as MaySlug)[SLUGIFY]);
 }
 export function toSlug(sluggable: Sluggable): Slug {
   if (isMaySlug(sluggable)) {
-    return sluggable.toSlug();
+    return sluggable[SLUGIFY]();
   }
   return SlugStruct(String(sluggable));
 }

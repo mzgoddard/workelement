@@ -1,0 +1,269 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`jobutil > all 1`] = `
+{
+  "__input": [
+    [],
+  ],
+  "__task": {
+    "deriveInput": [Function],
+    "deriveOutput": [Function],
+    "handle": [Function],
+    "name": "all",
+    "slug": [Function],
+    "slugerize": [Function],
+  },
+  Symbol(workelement.slugify): [Function],
+}
+`;
+
+exports[`jobutil > all 2`] = `
+{
+  "__slug": "all([])",
+  Symbol(workelement.slugify): [Function],
+  Symbol(nodejs.util.inspect.custom): [Function],
+}
+`;
+
+exports[`jobutil > all 3`] = `[]`;
+
+exports[`jobutil > all 4`] = `
+{
+  "__input": [
+    [
+      {
+        "__input": [
+          {
+            "func": [Function],
+            "name": "returnhi",
+            Symbol(workelement.slugify): [Function],
+          },
+        ],
+        "__task": {
+          "deriveInput": [Function],
+          "deriveOutput": [Function],
+          "handle": [Function],
+          "name": "call",
+          "slug": [Function],
+          "slugerize": [Function],
+        },
+        Symbol(workelement.slugify): [Function],
+      },
+    ],
+  ],
+  "__task": {
+    "deriveInput": [Function],
+    "deriveOutput": [Function],
+    "handle": [Function],
+    "name": "all",
+    "slug": [Function],
+    "slugerize": [Function],
+  },
+  Symbol(workelement.slugify): [Function],
+}
+`;
+
+exports[`jobutil > all 5`] = `
+{
+  "__slug": "all([call(func#returnhi#md5#kW2db_QbhZ_M_Pk9SSOeYw)])",
+  Symbol(workelement.slugify): [Function],
+  Symbol(nodejs.util.inspect.custom): [Function],
+}
+`;
+
+exports[`jobutil > all 6`] = `
+[
+  "hi",
+]
+`;
+
+exports[`jobutil > all 7`] = `
+{
+  "__input": [
+    [
+      {
+        "__input": [
+          {
+            "content": "{}",
+            Symbol(workelement.slugify): [Function],
+          },
+        ],
+        "__task": {
+          "deriveInput": [Function],
+          "deriveOutput": [Function],
+          "handle": [Function],
+          "name": "fromJSON",
+          "slug": [Function],
+          "slugerize": [Function],
+        },
+        Symbol(workelement.slugify): [Function],
+      },
+    ],
+  ],
+  "__task": {
+    "deriveInput": [Function],
+    "deriveOutput": [Function],
+    "handle": [Function],
+    "name": "all",
+    "slug": [Function],
+    "slugerize": [Function],
+  },
+  Symbol(workelement.slugify): [Function],
+}
+`;
+
+exports[`jobutil > all 8`] = `
+{
+  "__slug": "all([fromJSON(source(md5#mZFLkyvTelC5g8XnyQrpOw))])",
+  Symbol(workelement.slugify): [Function],
+  Symbol(nodejs.util.inspect.custom): [Function],
+}
+`;
+
+exports[`jobutil > all 9`] = `
+[
+  {},
+]
+`;
+
+exports[`jobutil > call 1`] = `
+{
+  "__input": [
+    {
+      "func": [Function],
+      "name": "returnhi",
+      Symbol(workelement.slugify): [Function],
+    },
+  ],
+  "__task": {
+    "deriveInput": [Function],
+    "deriveOutput": [Function],
+    "handle": [Function],
+    "name": "call",
+    "slug": [Function],
+    "slugerize": [Function],
+  },
+  Symbol(workelement.slugify): [Function],
+}
+`;
+
+exports[`jobutil > call 2`] = `
+{
+  "__slug": "call(func#returnhi#md5#kW2db_QbhZ_M_Pk9SSOeYw)",
+  Symbol(workelement.slugify): [Function],
+  Symbol(nodejs.util.inspect.custom): [Function],
+}
+`;
+
+exports[`jobutil > call 3`] = `"hi"`;
+
+exports[`jobutil > call 4`] = `
+{
+  "__input": [
+    {
+      "func": [Function],
+      "name": "JSON.parse",
+      Symbol(workelement.slugify): [Function],
+    },
+    {
+      "content": "{}",
+      Symbol(workelement.slugify): [Function],
+    },
+  ],
+  "__task": {
+    "deriveInput": [Function],
+    "deriveOutput": [Function],
+    "handle": [Function],
+    "name": "call",
+    "slug": [Function],
+    "slugerize": [Function],
+  },
+  Symbol(workelement.slugify): [Function],
+}
+`;
+
+exports[`jobutil > call 5`] = `
+{
+  "__slug": "call(func#JSON.parse#md5#5z1TkS6-WVk73xjDQ1w3RQ,source(md5#mZFLkyvTelC5g8XnyQrpOw))",
+  Symbol(workelement.slugify): [Function],
+  Symbol(nodejs.util.inspect.custom): [Function],
+}
+`;
+
+exports[`jobutil > call 6`] = `{}`;
+
+exports[`jobutil > func 1`] = `
+{
+  "__slug": "func#returnhi#md5#kW2db_QbhZ_M_Pk9SSOeYw",
+  Symbol(workelement.slugify): [Function],
+  Symbol(nodejs.util.inspect.custom): [Function],
+}
+`;
+
+exports[`jobutil > json 1`] = `
+{
+  "__input": [
+    {
+      "content": "{}",
+      Symbol(workelement.slugify): [Function],
+    },
+  ],
+  "__task": {
+    "deriveInput": [Function],
+    "deriveOutput": [Function],
+    "handle": [Function],
+    "name": "fromJSON",
+    "slug": [Function],
+    "slugerize": [Function],
+  },
+  Symbol(workelement.slugify): [Function],
+}
+`;
+
+exports[`jobutil > json 2`] = `
+{
+  "__slug": "fromJSON(source(md5#mZFLkyvTelC5g8XnyQrpOw))",
+  Symbol(workelement.slugify): [Function],
+  Symbol(nodejs.util.inspect.custom): [Function],
+}
+`;
+
+exports[`jobutil > json 3`] = `{}`;
+
+exports[`jobutil > json 4`] = `
+{
+  "__input": [
+    {
+      "content": "[]",
+      Symbol(workelement.slugify): [Function],
+    },
+  ],
+  "__task": {
+    "deriveInput": [Function],
+    "deriveOutput": [Function],
+    "handle": [Function],
+    "name": "fromJSON",
+    "slug": [Function],
+    "slugerize": [Function],
+  },
+  Symbol(workelement.slugify): [Function],
+}
+`;
+
+exports[`jobutil > json 5`] = `
+{
+  "__slug": "fromJSON(source(md5#11FxOYiYfpMxmANj4kGJzg))",
+  Symbol(workelement.slugify): [Function],
+  Symbol(nodejs.util.inspect.custom): [Function],
+}
+`;
+
+exports[`jobutil > json 6`] = `{}`;
+
+exports[`jobutil > source 1`] = `
+{
+  "__slug": "source(md5#mZFLkyvTelC5g8XnyQrpOw)",
+  Symbol(workelement.slugify): [Function],
+  Symbol(nodejs.util.inspect.custom): [Function],
+}
+`;

@@ -3,17 +3,24 @@ import { readFile, mkdir, stat as _stat, writeFile } from "fs/promises";
 import { dirname, relative, resolve } from "path";
 import { fileURLToPath } from "url";
 
-import { slug } from "../core/slug";
+import { SLUGIFY, slug } from "../core/slug";
 import { announceChanges, run, task } from "../core/jobcall";
-import { DateStruct } from "../structs/DateObject";
 import { SourceObject } from "../structs/SourceObject";
-import { PathHandleStruct, PathStruct, PathObject } from "../structs/PathObject";
-import { ModifiedTimeObject, ModifiedTimeStruct } from "../structs/ModifiedTimeObject";
+import {
+  PathHandleStruct,
+  PathStruct,
+  PathObject,
+  GET_ABSOLUTE_PATH,
+} from "../structs/PathObject";
+import {
+  ModifiedTimeObject,
+  ModifiedTimeStruct,
+} from "../structs/ModifiedTimeObject";
 
 export const path = (subpath) => {
   return {
     path: subpath,
-    toSlug() {
+    [SLUGIFY]() {
       return slug.dependency`path(${subpath})`;
     },
   };
@@ -83,8 +90,8 @@ export const dir = (path: PathObject) =>
     : PathStruct("..", path);
 
 export const absolutePath = (path: PathObject): string => {
-  return path.absolutePath
-    ? path.absolutePath()
+  return path[GET_ABSOLUTE_PATH]
+    ? path[GET_ABSOLUTE_PATH]()
     : path.relativeTo
     ? resolve(absolutePath(path.relativeTo), path.subpath)
     : resolve(path.subpath);
@@ -109,10 +116,11 @@ export const writeSource = task(
 );
 
 export const ensureDir = task(
-  async (path: PathObject) =>{
+  async (path: PathObject) => {
     await run(mkdir(absolutePath(path), { recursive: true }));
     // announceChanges([path]);
-    return { path }},
+    return { path };
+  },
   { name: "ensureDir" }
 );
 

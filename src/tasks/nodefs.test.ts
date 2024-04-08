@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { run } from "../core/jobcall.js";
-import { importdir, packagedir, readSource, relativeto } from "./jobfs.js";
-import { PathStruct } from "../structs/PathObject.js";
-import { Slug } from "../core/slug.js";
+import { run } from "../core/jobcall";
+import { PathStruct } from "../structs/PathObject";
+import { Slug } from "../core/slug";
+
+import { importdir, packagedir, readSource, relativeto } from "./nodefs";
 
 describe("jobfs", () => {
   describe("readSource", async () => {

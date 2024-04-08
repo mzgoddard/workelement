@@ -1,10 +1,10 @@
 import { JobFactory, guardScope, task } from "../core/jobcall";
-import { ExecOptions, exec } from "./jobprocess";
+import { ExecOptions, exec } from "./nodeprocess";
 import {
   ExecCommandArrayStruct,
   ExecCommandObject,
 } from "../structs/ExecCommandObject";
-import { after } from "./jobutil";
+import { after } from "./util";
 import { semaphore, semaphoreGuard } from "./semaphore";
 import { SemaphoreObject } from "../structs/SemaphoreObject";
 

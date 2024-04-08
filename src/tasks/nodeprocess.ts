@@ -2,8 +2,13 @@ import { exec as __exec } from "child_process";
 import type { ExecOptions } from "child_process";
 import { promisify } from "util";
 import { run, task } from "../core/jobcall";
-import { all } from "./jobutil";
-import { ExecCommandPart, ExecCommandArrayStruct, ExecCommandObject, getCommand } from "../structs/ExecCommandObject";
+import { all } from "./util";
+import {
+  ExecCommandPart,
+  ExecCommandArrayStruct,
+  ExecCommandObject,
+  getCommand,
+} from "../structs/ExecCommandObject";
 
 export { ExecOptions };
 

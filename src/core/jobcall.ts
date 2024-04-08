@@ -323,10 +323,10 @@ export async function run<J>(
         // if (parentContext) {
         //   parentContext.dependencies.add(jobContext);
         // }
-        await microtaskLock();
-        activeContext = jobContext;
         work = (async () => {
           try {
+            await microtaskLock();
+            activeContext = jobContext;
             const input = await task.deriveInput(job.__input);
             activeContext = jobContext;
             const output = await task.handle(...input);

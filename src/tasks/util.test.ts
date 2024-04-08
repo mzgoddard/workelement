@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { all, call, func, get, json, promise, props, source } from "./jobutil";
+import { all, call, func, get, json, promise, props, source } from "./util";
 import { SourceObject } from "../structs/SourceObject";
 import { run } from "../core/jobcall";
 import { Slug } from "../core/slug";

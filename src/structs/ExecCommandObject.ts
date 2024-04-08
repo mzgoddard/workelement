@@ -1,5 +1,5 @@
 import { MaySlug, SLUGIFY, Sluggable, slug } from "../core/slug";
-import { absolutePath } from "../tasks/jobfs";
+import { absolutePath } from "../tasks/nodefs";
 import { PathObject } from "./PathObject";
 
 export interface ExecCommandObject extends MaySlug {

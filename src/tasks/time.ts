@@ -1,5 +1,5 @@
 import { Job, JobDerivableInputItem, run, task } from "../core/jobcall";
-import { promise } from "./jobutil";
+import { promise } from "./util";
 import { DateObject, getDate, beginningOfTime } from "../structs/DateObject";
 
 export const ifNewer = task(

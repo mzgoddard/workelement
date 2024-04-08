@@ -1,4 +1,4 @@
-import { DependencyTree } from "../core/jobcall";
+import { DependencyTree } from "../core/run";
 import { isCacheable, SLUG_VALUE } from "../core/slug";
 import { indent, Lines } from "../support/indent";
 

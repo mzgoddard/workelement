@@ -1,7 +1,7 @@
 import { exec as __exec } from "child_process";
 import type { ExecOptions } from "child_process";
 import { promisify } from "util";
-import { run, task } from "../core/jobcall";
+import { run, task } from "../core/run";
 import { all } from "./util";
 import {
   ExecCommandPart,

@@ -1,4 +1,4 @@
-import { JobFactory, guardScope, task } from "../core/jobcall";
+import { JobFactory, guardScope, task } from "../core/run";
 import { ExecOptions, exec } from "./nodeprocess";
 import {
   ExecCommandArrayStruct,

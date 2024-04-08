@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { all, call, func, get, json, promise, props, source } from "./util";
 import { SourceObject } from "../structs/SourceObject";
-import { run } from "../core/jobcall";
+import { run } from "../core/run";
 import { Slug } from "../core/slug";
 
 describe("jobutil", () => {

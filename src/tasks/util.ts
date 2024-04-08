@@ -10,7 +10,7 @@ import {
   JobDerivable,
   addDependencies,
   announceChanges,
-} from "../core/jobcall";
+} from "../core/run";
 import {
   MaySlug,
   SLUGIFY,

@@ -4,7 +4,7 @@ import { dirname, relative, resolve } from "path";
 import { fileURLToPath } from "url";
 
 import { SLUGIFY, slug } from "../core/slug";
-import { announceChanges, run, task } from "../core/jobcall";
+import { announceChanges, run, task } from "../core/run";
 import { SourceObject } from "../structs/SourceObject";
 import {
   PathHandleStruct,

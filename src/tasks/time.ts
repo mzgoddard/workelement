@@ -1,4 +1,4 @@
-import { Job, JobDerivableInputItem, run, task } from "../core/jobcall";
+import { Job, JobDerivableInputItem, run, task } from "../core/run";
 import { promise } from "./util";
 import { DateObject, getDate, beginningOfTime } from "../structs/DateObject";
 

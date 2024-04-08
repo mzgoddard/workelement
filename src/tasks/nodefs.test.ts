@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { run } from "../core/jobcall";
+import { run } from "../core/run";
 import { PathStruct } from "../structs/PathObject";
 import { Slug } from "../core/slug";
 

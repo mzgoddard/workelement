@@ -139,6 +139,8 @@ export const defaultDeriveInput = async (
   derivableInput: JobDerivableInput<any>
 ) => await run(Promise.all(derivableInput.map(run)));
 
+class TaskBase {}
+
 function initTask<Handle extends JobHandle>(
   handle: Handle,
   options?: JobOptionsOf<Handle>
@@ -183,6 +185,43 @@ function initTask<Handle extends JobHandle>(
       }
       return output;
     });
+  const className = `GeneratedTask${titleCase(initializedName)}`;
+  const classNamer = {
+    [className]: function () {} as any as abstract new (...args: any[]) => any,
+  };
+  classNamer[className].prototype = {
+    name: initializedName,
+    handle,
+    slug: initializedSlug,
+    deriveInput: initializedDeriveInput,
+    deriveOutput: initializedDeriveOutput,
+    slugerize: initializedSlugerize,
+  };
+  const namedConstructor = classNamer[className];
+  return new { [className]: class extends namedConstructor {} }[className]();
+  // return new classNamer[className]();
+  return new {
+    [className]: class {
+      get name() {
+        return initializedName;
+      }
+      get handle() {
+        return handle;
+      }
+      get slug() {
+        return initializedSlug;
+      }
+      get deriveInput() {
+        return initializedDeriveInput;
+      }
+      get deriveOutput() {
+        return initializedDeriveOutput;
+      }
+      get slugerize() {
+        return initializedSlugerize;
+      }
+    },
+  }[className]();
   return {
     name: initializedName,
     handle,
@@ -191,6 +230,10 @@ function initTask<Handle extends JobHandle>(
     deriveOutput: initializedDeriveOutput,
     slugerize: initializedSlugerize,
   } as any;
+}
+
+function titleCase(str: string) {
+  return str[0].toUpperCase() + str.slice(1);
 }
 
 export function task<Handle extends JobHandle>(
@@ -251,6 +294,7 @@ const workMap = new SlugMap<Work>();
 export async function run<J>(
   job: J
 ): Promise<J extends Job ? DerivedJob<J> : J extends Promise<infer P> ? P : J> {
+  // console.log("run", isJob(job), job);
   const parentContext = activeContext;
   try {
     if (isJob(job)) {

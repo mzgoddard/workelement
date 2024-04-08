@@ -14,6 +14,7 @@ import {
 import {
   MaySlug,
   SLUGIFY,
+  SLUG_VALUE,
   Slug,
   SlugArray,
   isMaySlug,
@@ -72,7 +73,7 @@ export const all = task(
               slug(
                 input.map((_, i) => (i > 0 ? "," : "")),
                 ...input
-              ).__slug
+              )[SLUG_VALUE]
             )
       }])`;
     },
@@ -178,8 +179,8 @@ export const onError = task((value, onerror: Job) => value, {
       const errorResult = await run(onerror);
       console.log(
         "error",
-        Slug(derivableInput[0]).__slug,
-        Slug(errorResult).__slug
+        Slug(derivableInput[0])[SLUG_VALUE],
+        Slug(errorResult)[SLUG_VALUE]
       );
       if (isFunctionObject(errorResult)) {
         return [await run(errorResult.func(error)), onerror];

@@ -1,6 +1,7 @@
 import { inspect } from "util";
 import { abbreviate } from "../support/abbreviate";
 
+export const SLUG_VALUE: unique symbol = Symbol.for("workelement.slug");
 export const SLUGIFY: unique symbol = Symbol.for("workelement.slugify");
 
 type RawSlug = string;
@@ -8,7 +9,7 @@ export interface MaySlug {
   [SLUGIFY](): Slug;
 }
 export interface Slug extends MaySlug {
-  __slug: RawSlug;
+  [SLUG_VALUE]: RawSlug;
 }
 interface SlugCacheable extends Slug {
   isCacheable?: boolean;
@@ -21,7 +22,7 @@ interface SlugDependency extends Slug {
 }
 export type Sluggable = MaySlug | { toString(): string } | null | undefined;
 function isSlug(maybe: unknown): maybe is Slug {
-  return Boolean(maybe && (maybe as Slug).__slug);
+  return Boolean(maybe && (maybe as Slug)[SLUG_VALUE]);
 }
 export function isCacheable(maybe: Slug): boolean {
   try {
@@ -38,9 +39,91 @@ export function isOutput(maybe: Slug): boolean {
 export function isDependency(maybe: Slug): boolean {
   return (maybe as SlugDependency).isDependency ?? false;
 }
+function inspectSlug(this: Slug & SlugCacheable & SlugDependency & SlugOutput) {
+  return `[Slug ${this[SLUG_VALUE]}${this.isCacheable ? "" : " uncacheable"}${
+    this.isOutput ? " output" : ""
+  }${this.isDependency ? " dependency" : ""}]`;
+}
+class SlugBase implements Slug {
+  [SLUG_VALUE]: RawSlug;
+  constructor(slug: RawSlug) {
+    this[SLUG_VALUE] = slug;
+  }
+  get isCacheable() {
+    return true;
+  }
+  get isOutput() {
+    return false;
+  }
+  get isDependency() {
+    return false;
+  }
+  [SLUGIFY]() {
+    return Slug(this[SLUG_VALUE]);
+    // return this;
+  }
+  [inspect.custom]() {
+    return inspectSlug.call(this);
+  }
+}
+class SlugProxy implements Slug {
+  #target: Slug;
+  constructor(target: Slug) {
+    this.#target = target;
+  }
+  get [SLUG_VALUE](): RawSlug {
+    return this.#target[SLUG_VALUE];
+  }
+  get isCacheable(): boolean {
+    return (this.#target as SlugCacheable).isCacheable ?? true;
+  }
+  get isOutput(): boolean {
+    return (this.#target as SlugOutput).isOutput ?? false;
+  }
+  get isDependency(): boolean {
+    return (this.#target as SlugDependency).isDependency ?? false;
+  }
+  [SLUGIFY]() {
+    return this.#target[SLUGIFY]();
+  }
+  [inspect.custom]() {
+    return inspectSlug.call(this);
+  }
+}
+class SlugCacheableMod extends SlugProxy {
+  #cacheable: boolean;
+  constructor(target: Slug, cacheable: boolean) {
+    super(target);
+    this.#cacheable = cacheable;
+  }
+  get isCacheable(): boolean {
+    return this.#cacheable;
+  }
+}
+class SlugOutputMod extends SlugProxy {
+  #output: boolean;
+  constructor(target: Slug, output: boolean) {
+    super(target);
+    this.#output = output;
+  }
+  get isOutput(): boolean {
+    return this.#output;
+  }
+}
+class SlugDependencyMod extends SlugProxy {
+  #dependency: boolean;
+  constructor(target: Slug, dependency: boolean) {
+    super(target);
+    this.#dependency = dependency;
+  }
+  get isDependency(): boolean {
+    return this.#dependency;
+  }
+}
 function SlugStruct(__slug: RawSlug): Slug {
+  return new SlugBase(__slug);
   return {
-    __slug,
+    [SLUG_VALUE]: __slug,
     [SLUGIFY]() {
       return Slug(__slug);
     },
@@ -50,15 +133,19 @@ function SlugStruct(__slug: RawSlug): Slug {
   } as Slug;
 }
 export function SlugUncacheable(value: Slug): Slug {
+  return new SlugCacheableMod(value, false);
   return { ...value, isCacheable: false } as Slug;
 }
 export function SlugOutputStruct(value: Slug): Slug {
+  // return new SlugOutputMod(value, true);
   return { ...value, isOutput: true } as Slug;
 }
 export function SlugDependencyStruct(value: Slug): Slug {
+  return new SlugDependencyMod(value, true);
   return { ...value, isDependency: true } as Slug;
 }
 export function Slug(value: RawSlug | Slug | Sluggable): Slug {
+  // console.log("Slug", isSlug(value), isMaySlug(value), typeof value, value);
   if (isSlug(value)) {
     return value;
   } else if (isMaySlug(value)) {
@@ -67,12 +154,14 @@ export function Slug(value: RawSlug | Slug | Sluggable): Slug {
   return SlugStruct(String(value));
 }
 export function SlugArray(array: (RawSlug | Slug | Sluggable)[]): Slug {
-  return SlugStruct(`[${array.map((value) => Slug(value).__slug).join(",")}]`);
+  return SlugStruct(
+    `[${array.map((value) => Slug(value)[SLUG_VALUE]).join(",")}]`
+  );
 }
 // export function SlugObscured(name: string, variable)
 function SlugLazy(handle: () => RawSlug): Slug {
   return {
-    get __slug() {
+    get [SLUG_VALUE]() {
       return handle();
     },
     [SLUGIFY]() {
@@ -81,6 +170,7 @@ function SlugLazy(handle: () => RawSlug): Slug {
   };
 }
 export function isMaySlug(maybe: unknown): maybe is MaySlug {
+  // console.log("isMaySlug", maybe, (maybe as MaySlug)[SLUGIFY]);
   return Boolean(maybe && (maybe as MaySlug)[SLUGIFY]);
 }
 export function toSlug(sluggable: Sluggable): Slug {
@@ -94,7 +184,7 @@ export function slug(
   ...args: Sluggable[]
 ): Slug {
   return SlugStruct(
-    strings.map((s, i) => s + Slug(args[i] ?? "").__slug).join("")
+    strings.map((s, i) => s + Slug(args[i] ?? "")[SLUG_VALUE]).join("")
   );
 }
 slug.uncacheable = (strings: TemplateStringsArray, ...args: Sluggable[]) =>
@@ -117,16 +207,16 @@ export class SlugMap<V> implements Map<Slug, V> {
     this.map.clear();
   }
   delete(key: Slug): boolean {
-    return this.map.delete(key.__slug);
+    return this.map.delete(key[SLUG_VALUE]);
   }
   get(key: Slug) {
-    return this.map.get(key.__slug);
+    return this.map.get(key[SLUG_VALUE]);
   }
   has(key: Slug): boolean {
-    return this.map.has(key.__slug);
+    return this.map.has(key[SLUG_VALUE]);
   }
   set(key: Slug, value: V): this {
-    this.map.set(key.__slug, value);
+    this.map.set(key[SLUG_VALUE], value);
     return this;
   }
   *entries(): IterableIterator<[Slug, V]> {

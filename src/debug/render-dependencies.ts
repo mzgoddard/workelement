@@ -1,5 +1,5 @@
 import { DependencyTree } from "../core/jobcall";
-import { isCacheable } from "../core/slug";
+import { isCacheable, SLUG_VALUE } from "../core/slug";
 import { indent, Lines } from "../support/indent";
 
 export const renderDependenciesHTML = (dependencyTree: DependencyTree) => {
@@ -21,16 +21,18 @@ ${renderDependencyNodeHTML(dependencyTree)}
 export const renderDependencyNodeHTML = (
   dependencyTree: DependencyTree
 ): Lines => {
-    if (!isCacheable(dependencyTree.slug)) {
-        return indent`<div>[uncacheable] ${dependencyTree.slug.__slug}</div>`
-    }
-if (dependencyTree.dependencies.length === 0) {
-    return indent`<div>[#${String(dependencyTree.jobIndex)}] [${dependencyTree.upToDate ? 'upToDate' : 'outOfDate'}] ${dependencyTree.slug.__slug}</div>`;
-}
+  if (!isCacheable(dependencyTree.slug)) {
+    return indent`<div>[uncacheable] ${dependencyTree.slug[SLUG_VALUE]}</div>`;
+  }
+  if (dependencyTree.dependencies.length === 0) {
+    return indent`<div>[#${String(dependencyTree.jobIndex)}] [${
+      dependencyTree.upToDate ? "upToDate" : "outOfDate"
+    }] ${dependencyTree.slug[SLUG_VALUE]}</div>`;
+  }
   return indent`<details>
-    <summary>[#${String(dependencyTree.jobIndex)}] [${dependencyTree.upToDate ? 'upToDate' : 'outOfDate'}] ${dependencyTree.slug.__slug}</summary>
+    <summary>[#${String(dependencyTree.jobIndex)}] [${
+    dependencyTree.upToDate ? "upToDate" : "outOfDate"
+  }] ${dependencyTree.slug[SLUG_VALUE]}</summary>
     ${dependencyTree.dependencies.map(renderDependencyNodeHTML)}
 </details>`;
 };
-
-

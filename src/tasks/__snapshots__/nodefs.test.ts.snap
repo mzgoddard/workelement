@@ -1,7 +1,8 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`jobfs > readSource > matches job 1`] = `
-{
+WorkElement {
+  "__handle": [Function],
   "__input": [
     PathBase {
       "relativeTo": PathBase {
@@ -14,22 +15,5 @@ exports[`jobfs > readSource > matches job 1`] = `
       "subpath": "emptyobject.json",
     },
   ],
-  "__task": GeneratedTaskReadSource {},
-  Symbol(workelement.slugify): [Function],
-}
-`;
-
-exports[`jobfs > readSource > matches job slug 1`] = `
-SlugBase {
-  Symbol(workelement.slug): "readSource()",
-}
-`;
-
-exports[`jobfs > readSource > matches output 1`] = `{}`;
-
-exports[`jobfs > readSource > matches output slug 1`] = `
-{
-  "isOutput": true,
-  Symbol(workelement.slug): "readSource()",
 }
 `;

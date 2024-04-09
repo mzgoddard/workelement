@@ -1,3 +1,5 @@
+export type ResultOption<T> = Result<T> | ResultError;
+
 export class Result<T> {
   #result: T;
   constructor(result: T) {

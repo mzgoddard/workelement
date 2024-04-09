@@ -1,0 +1,143 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`time > delay 0 > matches job 1`] = `
+WorkElement {
+  "__handle": [Function],
+  "__input": [
+    0,
+  ],
+}
+`;
+
+exports[`time > delay 0 > matches output 1`] = `VoidBase {}`;
+
+exports[`time > delay 0 > matches slug 1`] = `
+SlugCacheableMod {
+  "target": SlugBase {
+    Symbol(workelement.slug): "delay(0)",
+  },
+}
+`;
+
+exports[`time > delay 1 > matches job 1`] = `
+WorkElement {
+  "__handle": [Function],
+  "__input": [
+    1,
+  ],
+}
+`;
+
+exports[`time > delay 1 > matches output 1`] = `VoidBase {}`;
+
+exports[`time > delay 1 > matches slug 1`] = `
+SlugCacheableMod {
+  "target": SlugBase {
+    Symbol(workelement.slug): "delay(1)",
+  },
+}
+`;
+
+exports[`time > timeout 0 > matches job 1`] = `
+WorkElement {
+  "__handle": [Function],
+  "__input": [
+    100,
+    WorkElement {
+      "__handle": [Function],
+      "__input": [
+        "timeout",
+        0,
+      ],
+    },
+  ],
+}
+`;
+
+exports[`time > timeout 0 > matches output 1`] = `
+Event {
+  Symbol(type): "abort",
+  Symbol(kTarget): AbortSignal {
+    Symbol(kEvents): Map {
+      "abort" => {
+        "next": Listener {
+          "callback": [Function],
+          "flags": 0,
+          "listener": [Function],
+          "next": undefined,
+          "previous": [Circular],
+        },
+        "resistStopPropagation": false,
+        "size": 1,
+      },
+    },
+    Symbol(events.maxEventTargetListeners): 10,
+    Symbol(events.maxEventTargetListenersWarned): false,
+    Symbol(kAborted): true,
+    Symbol(kReason): [TimeoutError: The operation was aborted due to timeout],
+    Symbol(kComposite): false,
+    Symbol(kTimeout): true,
+  },
+  Symbol(kIsBeingDispatched): false,
+}
+`;
+
+exports[`time > timeout 0 > matches slug 1`] = `
+SlugCacheableMod {
+  "target": SlugBase {
+    Symbol(workelement.slug): "delay(100)",
+  },
+}
+`;
+
+exports[`time > timeout 1 > matches job 1`] = `
+WorkElement {
+  "__handle": [Function],
+  "__input": [
+    100,
+    WorkElement {
+      "__handle": [Function],
+      "__input": [
+        "timeout",
+        50,
+      ],
+    },
+  ],
+}
+`;
+
+exports[`time > timeout 1 > matches output 1`] = `
+Event {
+  Symbol(type): "abort",
+  Symbol(kTarget): AbortSignal {
+    Symbol(kEvents): Map {
+      "abort" => {
+        "next": Listener {
+          "callback": [Function],
+          "flags": 0,
+          "listener": [Function],
+          "next": undefined,
+          "previous": [Circular],
+        },
+        "resistStopPropagation": false,
+        "size": 1,
+      },
+    },
+    Symbol(events.maxEventTargetListeners): 10,
+    Symbol(events.maxEventTargetListenersWarned): false,
+    Symbol(kAborted): true,
+    Symbol(kReason): [TimeoutError: The operation was aborted due to timeout],
+    Symbol(kComposite): false,
+    Symbol(kTimeout): true,
+  },
+  Symbol(kIsBeingDispatched): false,
+}
+`;
+
+exports[`time > timeout 1 > matches slug 1`] = `
+SlugCacheableMod {
+  "target": SlugBase {
+    Symbol(workelement.slug): "delay(100)",
+  },
+}
+`;

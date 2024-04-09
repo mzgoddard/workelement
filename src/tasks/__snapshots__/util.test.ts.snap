@@ -1,20 +1,21 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`jobutil > all > matches job 1`] = `
-{
+WorkElement {
+  "__handle": [Function],
   "__input": [
     [],
   ],
-  "__task": GeneratedTaskAll {},
-  Symbol(workelement.slugify): [Function],
 }
 `;
 
 exports[`jobutil > all > matches job 2`] = `
-{
+WorkElement {
+  "__handle": [Function],
   "__input": [
     [
-      {
+      WorkElement {
+        "__handle": [Function],
         "__input": [
           {
             "func": [Function],
@@ -22,71 +23,34 @@ exports[`jobutil > all > matches job 2`] = `
             Symbol(workelement.slugify): [Function],
           },
         ],
-        "__task": GeneratedTaskCall {},
-        Symbol(workelement.slugify): [Function],
       },
     ],
   ],
-  "__task": GeneratedTaskAll {},
-  Symbol(workelement.slugify): [Function],
 }
 `;
 
 exports[`jobutil > all > matches job 3`] = `
-{
+WorkElement {
+  "__handle": [Function],
   "__input": [
     [
-      {
+      WorkElement {
+        "__handle": [Function],
         "__input": [
           {
             "content": "{}",
             Symbol(workelement.slugify): [Function],
           },
         ],
-        "__task": GeneratedTaskFromJSON {},
-        Symbol(workelement.slugify): [Function],
       },
     ],
   ],
-  "__task": GeneratedTaskAll {},
-  Symbol(workelement.slugify): [Function],
-}
-`;
-
-exports[`jobutil > all > matches output 1`] = `[]`;
-
-exports[`jobutil > all > matches output 2`] = `
-[
-  "hi",
-]
-`;
-
-exports[`jobutil > all > matches output 3`] = `
-[
-  {},
-]
-`;
-
-exports[`jobutil > all > matches slug 1`] = `
-SlugBase {
-  Symbol(workelement.slug): "all([])",
-}
-`;
-
-exports[`jobutil > all > matches slug 2`] = `
-SlugBase {
-  Symbol(workelement.slug): "all([call()])",
-}
-`;
-
-exports[`jobutil > all > matches slug 3`] = `
-SlugBase {
-  Symbol(workelement.slug): "all([fromJSON()])",
 }
 `;
 
 exports[`jobutil > call > matches job 1`] = `
-{
+WorkElement {
+  "__handle": [Function],
   "__input": [
     {
       "func": [Function],
@@ -94,13 +58,12 @@ exports[`jobutil > call > matches job 1`] = `
       Symbol(workelement.slugify): [Function],
     },
   ],
-  "__task": GeneratedTaskCall {},
-  Symbol(workelement.slugify): [Function],
 }
 `;
 
 exports[`jobutil > call > matches job 2`] = `
-{
+WorkElement {
+  "__handle": [Function],
   "__input": [
     {
       "func": [Function],
@@ -112,24 +75,6 @@ exports[`jobutil > call > matches job 2`] = `
       Symbol(workelement.slugify): [Function],
     },
   ],
-  "__task": GeneratedTaskCall {},
-  Symbol(workelement.slugify): [Function],
-}
-`;
-
-exports[`jobutil > call > matches output 1`] = `"hi"`;
-
-exports[`jobutil > call > matches output 2`] = `{}`;
-
-exports[`jobutil > call > matches slug 1`] = `
-SlugBase {
-  Symbol(workelement.slug): "call()",
-}
-`;
-
-exports[`jobutil > call > matches slug 2`] = `
-SlugBase {
-  Symbol(workelement.slug): "call(,)",
 }
 `;
 
@@ -140,44 +85,26 @@ SlugBase {
 `;
 
 exports[`jobutil > json > matches job 1`] = `
-{
+WorkElement {
+  "__handle": [Function],
   "__input": [
     {
       "content": "{}",
       Symbol(workelement.slugify): [Function],
     },
   ],
-  "__task": GeneratedTaskFromJSON {},
-  Symbol(workelement.slugify): [Function],
 }
 `;
 
 exports[`jobutil > json > matches job 2`] = `
-{
+WorkElement {
+  "__handle": [Function],
   "__input": [
     {
       "content": "[]",
       Symbol(workelement.slugify): [Function],
     },
   ],
-  "__task": GeneratedTaskFromJSON {},
-  Symbol(workelement.slugify): [Function],
-}
-`;
-
-exports[`jobutil > json > matches output 1`] = `{}`;
-
-exports[`jobutil > json > matches output 2`] = `{}`;
-
-exports[`jobutil > json > matches slug 1`] = `
-SlugBase {
-  Symbol(workelement.slug): "fromJSON()",
-}
-`;
-
-exports[`jobutil > json > matches slug 2`] = `
-SlugBase {
-  Symbol(workelement.slug): "fromJSON()",
 }
 `;
 

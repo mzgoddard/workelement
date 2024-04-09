@@ -67,24 +67,24 @@ class SlugBase implements Slug {
   }
 }
 class SlugProxy implements Slug {
-  #target: Slug;
+  target: Slug;
   constructor(target: Slug) {
-    this.#target = target;
+    this.target = target;
   }
   get [SLUG_VALUE](): RawSlug {
-    return this.#target[SLUG_VALUE];
+    return this.target[SLUG_VALUE];
   }
   get isCacheable(): boolean {
-    return (this.#target as SlugCacheable).isCacheable ?? true;
+    return (this.target as SlugCacheable).isCacheable ?? true;
   }
   get isOutput(): boolean {
-    return (this.#target as SlugOutput).isOutput ?? false;
+    return (this.target as SlugOutput).isOutput ?? false;
   }
   get isDependency(): boolean {
-    return (this.#target as SlugDependency).isDependency ?? false;
+    return (this.target as SlugDependency).isDependency ?? false;
   }
   [SLUGIFY]() {
-    return this.#target[SLUGIFY]();
+    return this.target[SLUGIFY]();
   }
   [inspect.custom]() {
     return inspectSlug.call(this);

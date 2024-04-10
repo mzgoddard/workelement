@@ -7,14 +7,20 @@ import {
   task,
 } from "../core/run";
 import { promise } from "./util";
-import { DateObject, getDate, beginningOfTime } from "../structs/DateObject";
+import {
+  DateObject,
+  getDate,
+  beginningOfTime,
+  GET_DATE,
+} from "../structs/DateObject";
 import { AbortSignalStruct } from "../structs/AbortSignalObject";
 import { Sluggable, slug } from "../core/slug";
 import { ReferenceObject } from "../core/ref";
+import { inspect } from "node:util";
 
 export const ifNewer = task(
   (first: DateObject, second: DateObject, deferred: Job, otherwise?: Job) =>
-    getDate(first) >= getDate(second) ? deferred : otherwise ?? {},
+    getDate(first) >= getDate(second) ? deferred : otherwise,
   {
     name: "ifNewer",
     deriveInput: ([first, second, deferred, otherwise]) =>
@@ -31,6 +37,7 @@ export const ifNewer = task(
 
 export const mostRecent = task(
   (dates: DateObject[]) =>
+    // console.log(...dates),
     dates.reduce(
       (carry, item) => (getDate(carry) > getDate(item) ? carry : item),
       beginningOfTime()

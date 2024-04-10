@@ -4,13 +4,13 @@ import {
   ReferenceObject,
   RefersObject,
 } from "../core/ref";
-import { MaySlug, SLUGIFY, slug } from "../core/slug";
+import { MaySlug, SLUGIFY, Sluggable, slug } from "../core/slug";
 
 export interface PrimitiveObject<T> extends MaySlug, ReferenceObject<T> {
   value: T;
 }
 
-class PrimitiveBase<T> implements PrimitiveObject<T> {
+class PrimitiveBase<T extends Sluggable> implements PrimitiveObject<T> {
   value: T;
   constructor(value: T) {
     this.value = value;

@@ -207,6 +207,7 @@ type Last<T extends any[]> = T extends []
 
 export const after = task(
   async (...jobs: Job[]) => {
+    // console.log("after");
     let output;
     for (const jobItem of jobs) {
       output = await run(jobItem);
@@ -216,6 +217,7 @@ export const after = task(
   {
     name: "after",
     async deriveInput(jobs) {
+      // console.log("deriveInput after");
       return jobs;
     },
   }
@@ -264,6 +266,9 @@ export const changedBy = task(
     async deriveInput([value, inputs]) {
       return run(Promise.all([run(value), inputs]));
     },
+    slug(value, inputs) {
+      return slug`changedBy(${value},${SlugArray(inputs)})`;
+    },
   }
 ) as <T>(value: JobDerivableInputItem<T>, inputs: (MaySlug | Slug)[]) => Job<T>;
 
@@ -276,6 +281,9 @@ export const changes = task(
     name: "changes",
     async deriveInput([value, outputs]) {
       return run(Promise.all([run(value), outputs]));
+    },
+    slug(value, outputs) {
+      return slug`changes(${value},${SlugArray(outputs)})`;
     },
   }
 ) as <T>(

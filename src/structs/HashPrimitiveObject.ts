@@ -4,7 +4,9 @@ import { md5 } from "../support/md5";
 
 export interface HashPrimitiveObject<T> extends MaySlug, ReferenceObject<T> {}
 
-class HashPrimitiveBase<T> implements HashPrimitiveObject<T> {
+class HashPrimitiveBase<T extends { toString(): string }>
+  implements HashPrimitiveObject<T>
+{
   #value: T;
   #hash: any;
   constructor(value: T, hash?: any) {

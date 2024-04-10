@@ -8,6 +8,11 @@ export const console = () =>
 export const logTo = (console: Console, ...body: any[]) => {
   console.log(...body);
 };
+logTo.options = {
+  slug() {
+    return slug.uncacheable`logTo(...)`;
+  },
+};
 
 export const log = (...body: any[]) => work(logTo, work(console), ...body);
 log.options = {

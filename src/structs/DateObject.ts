@@ -7,22 +7,30 @@ export interface DateObject extends MaySlug {
 }
 
 class DateBase implements DateObject {
-  #id: string;
-  #date: Date;
+  id: string;
+  date: Date;
   constructor(id: string, date: Date) {
-    this.#id = id;
-    this.#date = date;
+    this.id = id;
+    this.date = date;
   }
   [GET_DATE]() {
-    return this.#date;
+    return this.date;
   }
   [SLUGIFY]() {
-    return slug`date(${this.#id})`;
+    return slug`date(${this.id})`;
   }
 }
 
 export const DateStruct = (id: string, date: Date): DateObject =>
   new DateBase(id, date);
+// ({
+//   [GET_DATE]() {
+//     return date;
+//   },
+//   [SLUGIFY]() {
+//     return slug`date(${id})`;
+//   },
+// });
 
 export const beginningOfTime = () => DateStruct("beginningOfTime", new Date(0));
 

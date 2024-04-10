@@ -24,6 +24,8 @@ import {
 } from "../support/Result";
 import { DEREFERENCE, ReferenceObject } from "./ref";
 import { VoidObject, VoidStruct } from "./VoidObject";
+import { GET_DATE } from "../structs/DateObject";
+import { deprecate } from "./deprecate";
 
 export interface JobHandle<
   Input extends [] | Sluggable[] = any,
@@ -248,36 +250,71 @@ function titleCase(str: string) {
 
 const taskWorkWrapperMap = new Map();
 
-function getWorkWrapper(handle: JobHandle, options?: JobOptionsOf<any>) {
+function getWorkWrapper(
+  handle: JobHandle,
+  handleOptions?: JobOptionsOf<any>
+): SimpleJobDefinition {
   let task = taskWorkWrapperMap.get(handle);
   if (!task) {
-    task = (...input) => handle(...input);
+    // console.log("new task", handleOptions?.name ?? handle?.name ?? "nameless");
+    const name = handleOptions?.name ?? handle?.name ?? "nameless";
+    task = { [name]: (...input) => handle(...input) }[name];
     let options;
     Object.defineProperty(task, "options", {
       get() {
         if (!options) {
+          const deriveInput = handleOptions?.deriveInput ?? defaultDeriveInput;
+          const slug = handleOptions?.slug ?? defaultSlug(name);
           options = {
-            name: options?.name ?? handle?.name ?? "nameless",
-            // middleware: (handle) => async (inputs, slug) =>
-            //   overwriteSlug(
-            //     await run(await handle(...(await runAllInputs(inputs)))),
-            //     slug
-            //   ),
-          };
+            name,
+            middleware: (handle) => async (inputs, slug) =>
+              overwriteSlug(
+                await run(handle(...(await run(deriveInput(inputs))))),
+                slug
+              ),
+            slug: (args) => slug(...args),
+          } as SimpleJobOptions<any, any, any>;
+          deprecate(
+            `taskWrapper(${options.name})`,
+            (key) => `${key}: task(...) is deprecated.`
+          );
         }
         return options;
       },
     });
     taskWorkWrapperMap.set(handle, task);
   }
+  // console.log(
+  //   "get task wrapper",
+  //   handleOptions?.name ?? handle?.name ?? "nameless",
+  //   task.options.name
+  // );
   return task;
 }
 
+interface RenderedJobFactory {
+  simpleTask: SimpleJobDefinition;
+}
+
+/** @deprecated */
 export function task<Handle extends JobHandle>(
   handle: Handle,
   options?: JobOptionsOf<Handle>
 ): RenderJobFactory<JobFactoryOf<Handle>> {
-  return ((...input) => work(getWorkWrapper(handle, options), ...input)) as any;
+  deprecate(
+    `task(${String(options?.name ?? handle.name)})`,
+    (key) => `${key}: task(...) is deprecated.`
+  );
+  return Object.defineProperties(
+    ((...input) => work(getWorkWrapper(handle, options), ...input)) as any,
+    {
+      simpleTask: {
+        get() {
+          return getWorkWrapper(handle, options);
+        },
+      },
+    }
+  );
   // const task = initTask(handle, options);
   // return Object.assign((...input) => ({
   //   // __task: task,
@@ -439,7 +476,7 @@ export type SimpleJob<Definition extends SimpleJobDefinition<any, any, any>> =
   Definition extends SimpleJobDefinition<
     SimpleJobHandle<any, PromiseOption<JobOption<infer HandleOutput>>>,
     any,
-    PromiseOption<JobOption<infer AfterOutput>>
+    PromiseOption<infer AfterOutput>
   >
     ? unknown extends AfterOutput
       ? HandleOutput extends void
@@ -497,8 +534,18 @@ const overwriteObjectSlug = <T extends {} | [] | any[]>(
   obj: T,
   slug: Slug
 ): T & MaySlug => {
+  // console.log(
+  //   obj,
+  //   obj[GET_DATE],
+  //   Object.create(obj, {
+  //     [SLUGIFY]: { value: () => slug },
+  //   }),
+  //   Object.create(obj, {
+  //     [SLUGIFY]: { value: () => slug },
+  //   })[GET_DATE]
+  // );
   return Object.create(obj, {
-    [SLUGIFY]: { value: slug },
+    [SLUGIFY]: { value: () => slug },
   });
 };
 
@@ -524,7 +571,9 @@ export const defaultMiddleware =
   <Handle, Input>(handle: Handle) =>
   async (args: Input, slug) => {
     return overwriteSlug(
-      await run(await (handle as any)(...(await runAllInputs(args as any)))),
+      await run(
+        await run((handle as any)(...(await runAllInputs(args as any))))
+      ),
       slug
     );
   };
@@ -553,6 +602,11 @@ function getTask<Handle extends SimpleJobDefinition>(
     task = initSimpleTask(handle);
     tasks.set(handle, task);
   }
+  // console.log(
+  //   "get task",
+  //   (handle as any)?.options?.name ?? (handle as any)?.name ?? "nameless",
+  //   task.name
+  // );
   return task;
 }
 
@@ -570,11 +624,28 @@ class WorkElement<Handle extends SimpleJobDefinition>
   }
 }
 
+function isJobFactory(maybe: unknown): maybe is RenderedJobFactory {
+  return Boolean(maybe && (maybe as RenderedJobFactory).simpleTask);
+}
+
 export function work<Handle extends SimpleJobDefinition>(
   handle: Handle,
   ...args: SimpleJobParameters<Handle>
-): SimpleJob<Handle> {
-  return new WorkElement(handle, args) as SimpleJob<Handle>;
+): SimpleJob<Handle>;
+export function work<T extends (...args: any[]) => Job<any>>(
+  handle: T,
+  ...args: Parameters<T>
+): ReturnType<T>;
+export function work(handle: any, ...args: any[]): Job<any> {
+  if (isJobFactory(handle)) {
+    deprecate(
+      `work(task(${handle.simpleTask.options.name}))`,
+      (key) => `${key}: work(task(...), ...) is deprecated.`
+    );
+    return new WorkElement(handle.simpleTask, args) as SimpleJob<any>;
+    // return handle(...args) as Job<any>;
+  }
+  return new WorkElement(handle as SimpleJobDefinition, args) as SimpleJob<any>;
   return {
     __handle: handle,
     __input: args,
@@ -583,6 +654,13 @@ export function work<Handle extends SimpleJobDefinition>(
     },
   } as any;
 }
+
+// export function bind<Handle extends SimpleJobDefinition>(
+//   handle: Handle,
+//   ...args: SimpleJobParameters<Handle>
+// ): SimpleJob<Handle>;
+// export function bind(...args: any): SimpleJob<any>;
+// export function bind(...args): SimpleJob<any> {}
 
 export async function runInput<T>(input: JobInputOption<T>): Promise<T> {
   const result = await run(input);
@@ -701,14 +779,23 @@ function isSimpleJob<T>(job: unknown): job is Job<T> {
 
 export async function run<J>(
   job: J
-): Promise<J extends Job ? DerivedJob<J> : J extends Promise<infer P> ? P : J> {
-  // console.log("run", isJob(job), job);
+): Promise<
+  J extends Job<infer Output>
+    ? Output
+    : J extends Promise<infer P>
+    ? P extends Job<infer Output>
+      ? Output
+      : P
+    : J
+> {
+  // console.log("run", job);
   const parentContext = activeContext;
   try {
     if (isSimpleJob(job)) {
       const task = getTask(job.__handle);
       const slug = task.slug(job.__input);
       let contextCollection = findOrCreateContextCollection<J>(slug, job);
+      // console.log("run", slug, Boolean(contextCollection.work));
       let work = contextCollection.work;
       if (!work || !contextCollection.upToDate) {
         const jobContext: RunContext = createContext<J>(
@@ -721,7 +808,7 @@ export async function run<J>(
           try {
             await microtaskLock();
             activeContext = jobContext;
-            return task.run(job.__input, slug);
+            return await task.run(job.__input, slug);
           } finally {
             if (jobContext.guards) {
               await Promise.all(
@@ -809,7 +896,10 @@ export async function run<J>(
       return output.unwrap();
     }
     if (isPromise(job)) {
-      return (await job) as any;
+      const result = await job;
+      await microtaskLock();
+      activeContext = parentContext;
+      return (await run(result)) as any;
     }
     if (parentContext && isMaySlug(job)) {
       const slug = Slug(job);

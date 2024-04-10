@@ -1,5 +1,6 @@
 import { inspect } from "util";
 import { abbreviate } from "../support/abbreviate";
+import { deprecate } from "./deprecate";
 
 export const SLUG_VALUE: unique symbol = Symbol.for("workelement.slug");
 export const SLUGIFY: unique symbol = Symbol.for("workelement.slugify");
@@ -49,6 +50,10 @@ class SlugBase implements Slug {
   constructor(slug: RawSlug) {
     this[SLUG_VALUE] = slug;
   }
+  get __slug() {
+    deprecate("SlugBase.__slug", (key) => `${key} is deprecated`);
+    return this[SLUG_VALUE];
+  }
   get isCacheable() {
     return true;
   }
@@ -73,6 +78,10 @@ class SlugProxy implements Slug {
   }
   get [SLUG_VALUE](): RawSlug {
     return this.target[SLUG_VALUE];
+  }
+  get __slug() {
+    deprecate("SlugProxy.__slug", (key) => `${key} is deprecated`);
+    return this[SLUG_VALUE];
   }
   get isCacheable(): boolean {
     return (this.target as SlugCacheable).isCacheable ?? true;

@@ -1,5 +1,5 @@
 import { defer } from "../support/defer";
-import { Guard, Job, addGuard, getThisContext, run, task } from "../core/run";
+import { Guard, Work, addGuard, getThisContext, run, task } from "../core/run";
 import { Semaphore, SemaphoreGuard } from "../support/semaphore";
 import { MaySlug, SLUGIFY, slug } from "../core/slug";
 

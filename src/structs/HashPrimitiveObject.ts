@@ -1,8 +1,13 @@
-import { DEREFERENCE, ReferenceObject } from "../core/ref";
+import {
+  DEREFERENCE,
+  REFERS_TO,
+  ReferenceObject,
+  RefersObject,
+} from "../core/ref";
 import { MaySlug, SLUGIFY, slug } from "../core/slug";
 import { md5 } from "../support/md5";
 
-export interface HashPrimitiveObject<T> extends MaySlug, ReferenceObject<T> {}
+export interface HashPrimitiveObject<T> extends MaySlug, RefersObject<T> {}
 
 class HashPrimitiveBase<T extends { toString(): string }>
   implements HashPrimitiveObject<T>
@@ -19,7 +24,7 @@ class HashPrimitiveBase<T extends { toString(): string }>
     }
     return this.#hash;
   }
-  [DEREFERENCE]() {
+  [REFERS_TO]() {
     return this.#value;
   }
   [SLUGIFY]() {

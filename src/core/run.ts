@@ -79,7 +79,7 @@ export interface Job<Output = any> extends MaySlug {
   __task?: any;
   __handle?: any;
   __input: any;
-  // __output: Output;
+  __output?: Output;
 }
 
 export type JobDerivable<Output> = Job<Output> | PromiseLike<Output>;
@@ -191,7 +191,6 @@ function initTask<Handle extends JobHandle>(
         return Object.create(output, {
           [SLUGIFY]: { value: () => SlugOutputStruct(slug) },
         });
-        // return { ...output, toSlug: () => SlugOutputStruct(slug) };
       } else if (output === undefined || output === null) {
         return SlugOutputStruct(slug);
       }
@@ -211,37 +210,6 @@ function initTask<Handle extends JobHandle>(
   };
   const namedConstructor = classNamer[className];
   return new { [className]: class extends namedConstructor {} }[className]();
-  // return new classNamer[className]();
-  return new {
-    [className]: class {
-      get name() {
-        return initializedName;
-      }
-      get handle() {
-        return handle;
-      }
-      get slug() {
-        return initializedSlug;
-      }
-      get deriveInput() {
-        return initializedDeriveInput;
-      }
-      get deriveOutput() {
-        return initializedDeriveOutput;
-      }
-      get slugerize() {
-        return initializedSlugerize;
-      }
-    },
-  }[className]();
-  return {
-    name: initializedName,
-    handle,
-    slug: initializedSlug,
-    deriveInput: initializedDeriveInput,
-    deriveOutput: initializedDeriveOutput,
-    slugerize: initializedSlugerize,
-  } as any;
 }
 
 function titleCase(str: string) {
@@ -253,10 +221,9 @@ const taskWorkWrapperMap = new Map();
 function getWorkWrapper(
   handle: JobHandle,
   handleOptions?: JobOptionsOf<any>
-): SimpleJobDefinition {
+): WorkDefinition {
   let task = taskWorkWrapperMap.get(handle);
   if (!task) {
-    // console.log("new task", handleOptions?.name ?? handle?.name ?? "nameless");
     const name = handleOptions?.name ?? handle?.name ?? "nameless";
     task = { [name]: (...input) => handle(...input) }[name];
     let options;
@@ -284,16 +251,11 @@ function getWorkWrapper(
     });
     taskWorkWrapperMap.set(handle, task);
   }
-  // console.log(
-  //   "get task wrapper",
-  //   handleOptions?.name ?? handle?.name ?? "nameless",
-  //   task.options.name
-  // );
   return task;
 }
 
 interface RenderedJobFactory {
-  simpleTask: SimpleJobDefinition;
+  simpleTask: WorkDefinition;
 }
 
 /** @deprecated */
@@ -315,55 +277,23 @@ export function task<Handle extends JobHandle>(
       },
     }
   );
-  // const task = initTask(handle, options);
-  // return Object.assign((...input) => ({
-  //   // __task: task,
-  //   __handle:
-  //   __input: input,
-  //   [SLUGIFY]() {
-  //     return task.slug(...input);
-  //   },
-  // }));
 }
-
-// type TT<
-//   Handle = (...args) => any,
-//   Options extends {
-//     handle: Handle;
-//     prepare?: (args: Parameters<Extract<Handle, (...args) => any>>) => any;
-//   } = { handle: Handle }
-// > = Options;
-
-// const castTT = <T extends TT>(tt: T): T => tt;
-
-// const tt = castTT({
-//   handle: (num: string) => Number(num),
-//   prepare: (args) => args,
-// });
-
-// type TTOptions<Handle extends (...args) => any> = {
-//   prepare?: (args: Parameters<Handle>) => [] | any[]
-// }
-
-// const tttOptions = <Handle extends (...args) => any>(handle: Handle, options: TTOptions<Handle>) => options;
-
-// const ttt = (num: string) => Number(num);
-// ttt.options = tttOptions(ttt, {prepare: args => args});
-
-// const extendTask = <Handle>(handle: Handle, options: {}) {}
 
 export type PromiseOption<T> = Promise<T> | T;
 
-export type JobOption<T> = Job<T> | T;
+export type JobOption<T = any> = Job<T> | T;
+
+export type PromiseJobOption<T> = PromiseOption<JobOption<T>>;
 
 export type JobReferenceOption<T> = ReferenceObject<T> | T;
 
-export type JobInputOption<T = any> = JobOption<JobReferenceOption<T>> &
-  Sluggable;
+export type JobInputOption<T extends Sluggable> =
+  | Job<ReferenceObject<T>>
+  | Job<T>
+  | ReferenceObject<T>
+  | T;
 
 export type JobHandleOption<T> = Job<T> | T;
-
-// export type SimpleJobHandleInputItem<Item> = ;
 
 export type SimpleJobHandleInput<Input extends [] | any[]> = Input extends [
   infer First,
@@ -372,14 +302,18 @@ export type SimpleJobHandleInput<Input extends [] | any[]> = Input extends [
   ? [JobInputOption<First>, ...SimpleJobHandleInput<Rest>]
   : Input;
 
-export type SimpleJobHandle<Input extends [] | any[] = any, Output = any> = (
+export type WorkHandle<Input extends [] | any[] = any, Output = any> = (
   ...args: Input
 ) => Output;
 
-export type SimpleJobHandleParameters<T extends SimpleJobHandle> =
-  T extends SimpleJobHandle<infer Input, any> ? Input : never;
-export type SimpleJobHandleReturn<T extends SimpleJobHandle> =
-  T extends SimpleJobHandle<any, infer Output> ? Output : never;
+export type SimpleJobHandleParameters<T extends WorkHandle> =
+  T extends WorkHandle<infer Input, any> ? Input : never;
+export type SimpleJobHandleReturn<T extends WorkHandle> = T extends WorkHandle<
+  any,
+  infer Output
+>
+  ? Output
+  : never;
 
 export type SimpleJobBeforeParameters<Input extends [] | any[]> =
   Input extends []
@@ -390,14 +324,16 @@ export type SimpleJobBeforeParameters<Input extends [] | any[]> =
     ? JobInputOption<Item>[]
     : Input;
 
-export type SimpleJobAfterReturn<T extends SimpleJobHandle> =
-  T extends SimpleJobHandle<any, infer Output>
-    ? PromiseOption<JobOption<Output>>
-    : never;
+export type SimpleJobAfterReturn<T extends WorkHandle> = T extends WorkHandle<
+  any,
+  infer Output
+>
+  ? PromiseJobOption<Output>
+  : never;
 
-export type SimpleJobOptions<T extends SimpleJobHandle, Input, Output> = {
+export type SimpleJobOptions<T extends WorkHandle, Input, Output> = {
   name?: string;
-  before?(args: Input): PromiseOption<JobOption<SimpleJobHandleParameters<T>>>;
+  before?(args: Input): PromiseJobOption<SimpleJobHandleParameters<T>>;
   after?(
     output: SimpleJobHandleReturn<T>,
     args: SimpleJobHandleParameters<T>,
@@ -421,83 +357,72 @@ jjj.options = {
   },
 } as SimpleJobOptions<typeof jjj, any, any>;
 
-export type SimpleJobDefinition<
-  T extends SimpleJobHandle = any,
+export type WorkDefinition<
+  T extends WorkHandle = any,
   Input = any,
   Output = any
 > = T & { options?: SimpleJobOptions<T, Input, Output> };
 
 export type SimpleJobDefinitionInput<
-  Definition extends SimpleJobDefinition<any, any, any>
-> = Definition extends SimpleJobDefinition<any, infer Input, any>
-  ? Input
-  : never;
+  Definition extends WorkDefinition<any, any, any>
+> = Definition extends WorkDefinition<any, infer Input, any> ? Input : never;
 
-export type JobAwaited<T extends PromiseOption<JobOption<any>>> =
-  T extends PromiseOption<JobOption<infer Output>> ? Output : never;
+export type JobAwaited<T extends PromiseJobOption<any>> =
+  T extends PromiseJobOption<infer Output> ? Output : never;
 
 export type SimpleJobDefinitionOutput<
-  Definition extends SimpleJobDefinition<any, any, any>
-> = Definition extends SimpleJobDefinition<any, any, infer Output>
-  ? Output
-  : never;
+  Definition extends WorkDefinition<any, any, any>
+> = Definition extends WorkDefinition<any, any, infer Output> ? Output : never;
 
 export type SimpleJobParameters<
-  Definition extends SimpleJobDefinition<any, any, any>
+  Definition extends WorkDefinition<any, any, any>
 > = Definition extends { options: undefined }
-  ? Definition extends SimpleJobHandle<infer HandleInput, any>
+  ? Definition extends WorkHandle<infer HandleInput, any>
     ? SimpleJobBeforeParameters<HandleInput>
     : unknown[]
   : Definition extends {
       options?: SimpleJobOptions<any, infer BeforeInput, any>;
     }
   ? unknown extends BeforeInput
-    ? Definition extends SimpleJobHandle<infer HandleInput, any>
+    ? Definition extends WorkHandle<infer HandleInput, any>
       ? SimpleJobBeforeParameters<HandleInput>
       : unknown[]
     : BeforeInput
   : unknown[];
 
-export type SimpleJobReturn<Definition extends SimpleJobDefinition> =
+export type SimpleJobReturn<Definition extends WorkDefinition> =
   Definition extends {
     options?: SimpleJobOptions<any, any, infer AfterOutput>;
   }
     ? unknown extends AfterOutput
-      ? Definition extends SimpleJobHandle<
-          any,
-          PromiseOption<JobOption<infer HandleOutput>>
-        >
+      ? Definition extends WorkHandle<any, PromiseJobOption<infer HandleOutput>>
         ? HandleOutput
         : unknown
       : AfterOutput
     : unknown;
 
-export type SimpleJob<Definition extends SimpleJobDefinition<any, any, any>> =
-  Definition extends SimpleJobDefinition<
-    SimpleJobHandle<any, PromiseOption<JobOption<infer HandleOutput>>>,
+export type SimpleJob<Definition extends WorkDefinition<any, any, any>> =
+  Definition extends WorkDefinition<
+    WorkHandle<any, PromiseJobOption<infer HandleOutput>>,
     any,
     PromiseOption<infer AfterOutput>
   >
     ? unknown extends AfterOutput
       ? HandleOutput extends void
         ? Job<VoidObject>
-        : Job<HandleOutput>
+        : HandleOutput extends Sluggable
+        ? Job<HandleOutput>
+        : Job<HandleOutput & Sluggable>
       : Job<AfterOutput>
     : Job<unknown>;
 
-// export type SimpleJobHandle<Input = any, Output = any> = JobHandle & {
-//   before?(): void;
-// };
+export type JobParameters<Handle extends WorkHandle> = {};
 
-export type JobParameters<Handle extends SimpleJobHandle> = {};
+export type JobReturnType<Handle extends WorkHandle> = {};
 
-export type JobReturnType<Handle extends SimpleJobHandle> = {};
+const tasks = new Map<WorkDefinition, SimpleTask<any>>();
 
-const tasks = new Map<SimpleJobDefinition, SimpleTask<any>>();
-
-// const jobConstructors = new Map<SimpleJobDefinition<any, any, any>>
-
-export interface SimpleTask<Handle extends SimpleJobDefinition> {
+export interface SimpleTask<Handle extends WorkDefinition> {
   name: string;
   run(
     inputs: SimpleJobParameters<Handle>,
@@ -506,44 +431,10 @@ export interface SimpleTask<Handle extends SimpleJobDefinition> {
   slug(inputs: SimpleJobParameters<Handle>): Slug;
 }
 
-type A1 = any extends {} ? 1 : true;
-type A2 = {} extends any ? 1 : true;
-type A3 = any extends any ? 1 : true;
-type A4 = never extends {} ? 1 : true;
-type A5 = {} extends never ? 1 : true;
-type A6 = never extends never ? 1 : true;
-type A7 = unknown extends {} ? 1 : true;
-type A8 = {} extends unknown ? 1 : true;
-type A9 = unknown extends unknown ? 1 : true;
-type A10 = any extends unknown ? 1 : true;
-type A11 = unknown extends any ? 1 : true;
-type A12 = unknown extends never ? 1 : true;
-type A13 = never extends unknown ? 1 : true;
-
-type OnlyAny<T> = (any extends T ? true : false) extends true
-  ? unknown extends T
-    ? never
-    : any
-  : never;
-type OA1 = OnlyAny<any>;
-type OA4 = OnlyAny<unknown>;
-type OA2 = OnlyAny<{}>;
-type OA3 = OnlyAny<never>;
-
 const overwriteObjectSlug = <T extends {} | [] | any[]>(
   obj: T,
   slug: Slug
 ): T & MaySlug => {
-  // console.log(
-  //   obj,
-  //   obj[GET_DATE],
-  //   Object.create(obj, {
-  //     [SLUGIFY]: { value: () => slug },
-  //   }),
-  //   Object.create(obj, {
-  //     [SLUGIFY]: { value: () => slug },
-  //   })[GET_DATE]
-  // );
   return Object.create(obj, {
     [SLUGIFY]: { value: () => slug },
   });
@@ -578,15 +469,14 @@ export const defaultMiddleware =
     );
   };
 
-function initSimpleTask<Handle extends SimpleJobDefinition<any, any, any>>(
+function initSimpleTask<Handle extends WorkDefinition<any, any, any>>(
   handle: Handle
 ): SimpleTask<Handle> {
   const {
     name = (handle as Function).name ?? "nameless",
     middleware = defaultMiddleware,
     slug: _slug = (args) => slug`${name}(${SlugArray(args)})`,
-  } = (handle as SimpleJobDefinition).options ?? EMPTY_OBJECT;
-  // const run =
+  } = (handle as WorkDefinition).options ?? EMPTY_OBJECT;
   return {
     name,
     run: middleware(handle),
@@ -594,7 +484,7 @@ function initSimpleTask<Handle extends SimpleJobDefinition<any, any, any>>(
   };
 }
 
-function getTask<Handle extends SimpleJobDefinition>(
+function getTask<Handle extends WorkDefinition>(
   handle: Handle
 ): SimpleTask<Handle> {
   let task = tasks.get(handle);
@@ -602,15 +492,10 @@ function getTask<Handle extends SimpleJobDefinition>(
     task = initSimpleTask(handle);
     tasks.set(handle, task);
   }
-  // console.log(
-  //   "get task",
-  //   (handle as any)?.options?.name ?? (handle as any)?.name ?? "nameless",
-  //   task.name
-  // );
   return task;
 }
 
-class WorkElement<Handle extends SimpleJobDefinition>
+class WorkElement<Handle extends WorkDefinition>
   implements Job<SimpleJobReturn<Handle>>
 {
   __handle: Handle;
@@ -628,14 +513,231 @@ function isJobFactory(maybe: unknown): maybe is RenderedJobFactory {
   return Boolean(maybe && (maybe as RenderedJobFactory).simpleTask);
 }
 
-export function work<Handle extends SimpleJobDefinition>(
-  handle: Handle,
-  ...args: SimpleJobParameters<Handle>
-): SimpleJob<Handle>;
-export function work<T extends (...args: any[]) => Job<any>>(
-  handle: T,
-  ...args: Parameters<T>
-): ReturnType<T>;
+type A1 = <T>(t: T) => T;
+type A2<T extends (...args) => any, I extends (...args) => any> = ReturnType<
+  T & I
+>;
+type A3 = ReturnType<A1 & (<T>(n: T & number) => T)>;
+type A4 = Extract<A1, <T>(t: T) => T>;
+type A5 = A4 & ((t: number) => number);
+type A6<T> = T & number;
+type A7 = A6<unknown>;
+type A8 = ReturnType<(() => any) & ((t: number) => number)>;
+type A9 = Parameters<(() => any) | ((t: number) => number)>;
+type A10 = ReturnType<(() => unknown) | ((t: number) => number)>;
+type A11<P, R> = (...args: P & ([] | any[])) => R;
+type A12 = (<T>(t: T) => [T]) extends A11<infer P, infer R> ? [P, R] : never;
+type A13 = ((t: number) => any) extends A11<infer T> ? T : never;
+type A14<F, A, R> = F & ((...args: A & ([] | any[])) => R);
+type A15<F, P, R> = (
+  fn: F & ((...args: P & ([] | any[])) => R),
+  ...args: P & ([] | any[])
+) => R;
+// type A16 = (fn: <T>(t: T) => [T], ...args: [number]) => ;
+type A17<A, R> = (
+  fn: (...args: A & ([] | any[])) => R,
+  ...args: A & ([] | any[])
+) => R;
+type A18 = ((fn: <T>(t: T) => [T], ...args: [number]) => any) extends A17<
+  infer A,
+  infer R
+>
+  ? R
+  : never;
+type A19<A, R> = (...args: A & ([] | any[])) => R;
+type A20<F, A> = ReturnType<F & ((...args: A & ([] | any[])) => unknown)>;
+type A21 = A20<<T>(t: T) => [T], [t: number]>;
+
+const f = <A, R>(
+  fn: (...args: A & ([] | any[])) => R,
+  ...args: A & ([] | any[])
+): R => {};
+const f1 = f(<T>(n: T) => [n] as [T], 1);
+
+type WorkParameters<A> = A extends [infer First, ...infer Rest]
+  ? [JobInputOption<First>, ...WorkParameters<Rest>]
+  : A extends []
+  ? []
+  : A extends (infer Item)[]
+  ? JobInputOption<Item>[]
+  : never;
+
+function g<A, R>(
+  fn: (...args: A & ([] | any[])) => R,
+  ...args: (A extends infer AA & ([] | any[]) ? WorkParameters<AA> : A) &
+    ([] | any[])
+): { result: R };
+// function g<F, A, R>(
+//   fn: F & ((...args: A & ([] | any[])) => R),
+//   ...args: A extends [infer A0] ? [JobInputOption<A0>] : never
+// ): { result: R };
+// function g<F, A, R>(
+//   fn: F & ((...args: A & ([] | any[])) => R),
+//   ...args: A & []
+// ): { result: R };
+function g<A, R>(
+  fn: (...args: A & ([] | any[])) => R,
+  ...args: A & ([] | any[])
+): { result: R };
+function g(fn: any, ...args: any): { result: unknown };
+function g(fn: any, ...args: any): any {}
+const g1 = g(<T>([t]: [T]): { t: T } => ({ t }), [1]);
+
+type AnyParams = [] | any[];
+
+type HandleParameters<A> = A extends [
+  JobInputOption<infer First>,
+  ...infer Rest
+]
+  ? [First, ...HandleParameters<Rest>]
+  : A extends []
+  ? []
+  : never;
+
+type Clean<T> = T;
+type MiddlewareParameters<A> = A extends [infer First, ...infer Rest]
+  ? [First, ...MiddlewareParameters<Rest>]
+  : A extends []
+  ? []
+  : A extends (infer Item)[]
+  ? Item[]
+  : never;
+export type MiddlewareReturn<M> = M extends (
+  handle: (...args) => any
+) => (args: any, slug: Slug) => infer R
+  ? R
+  : never;
+
+type WorkMiddlewareOptions<A, R> = {
+  options: {
+    middleware: (
+      handle: (...args: any) => any
+    ) => (args: A & ([] | any[]), ...rest: any) => R;
+  };
+};
+
+function p1<A extends [] | any[], R>(...args: A): R {}
+type P1<F> = ReturnType<F & typeof p1>;
+type P2 = P1<<T>(t: T) => [T]>;
+type P3<A, R> = typeof p1<A & ([] | any[]), R>;
+type P4 = P3<[], number>;
+type P5 = typeof p1 & (<T>(t: T) => [T]);
+type P6 = ReturnType<P5 & ((t: number) => unknown)>;
+
+// export function work<M, A, P, R, O = "middleware">(
+//   handle: M &
+//     ((...args: any) => any) & {
+//       options: {
+//         middleware: (
+//           handle: (...args: any) => any
+//         ) => (args: A & ([] | any[]), ...rest: any) => R;
+//       };
+//     },
+//   ...args: P & MiddlewareParameters<A & ([] | any[])>
+// ): M & {
+//   options: {
+//     middleware: (
+//       handle: (...args: any) => any
+//     ) => (...args: A & MiddlewareParameters<P & ([] | any[])>) => R;
+//   };
+// } extends WorkMiddlewareOptions<any, infer R2>
+//   ? Job<R2>
+//   : Job<unknown>;
+
+// export function work<F, A, R>(handle: {work: F & ((fn: any, args: A & ([] | any[])) => R)})
+
+// export function work<F, A0, A1, A2, A3, P, R, O = "raw [4]">(
+//   handle: F &
+//     ((slug: Slug, args: [A0, A1, A2, A3] & Extract<P, [] | any[]>) => R),
+//   ...args: P & [A0, A1, A2, A3]
+// ): Job<Awaited<R>>;
+// export function work<F, A0, A1, A2, P, R, O = "raw [3]">(
+//   handle: F & ((slug: Slug, args: [A0, A1, A2] & Extract<P, [] | any[]>) => R),
+//   ...args: P & [A0, A1, A2]
+// ): Job<Awaited<R>>;
+// export function work<F, A0, A1, P, R, O = "raw [2]">(
+//   handle: F & ((slug: Slug, args: [A0, A1] & Extract<P, [] | any[]>) => R),
+//   ...args: P & [A0, A1]
+// ): Job<Awaited<R>>;
+// export function work<F, A0, P, R, O = "raw [1]">(
+//   handle: F & ((slug: Slug, args: [A0] & Extract<P, [A0]>) => R),
+//   ...args: P & [A0]
+// ): Job<Awaited<R>>;
+// export function work<F, P, R, O = "raw [0]">(
+//   handle: F & ((slug: Slug, args: []) => R),
+//   ...args: []
+// ): Job<Awaited<R>>;
+
+// export function work<
+//   F extends (slug: Slug, args: A) => any,
+//   G,
+//   A,
+//   P extends A,
+//   R1,
+//   R,
+//   O = "raw"
+// >(
+//   handle1: F | (F & ((slug: Slug, args: MiddlewareParameters<P>) => R)),
+//   handle2: any,
+//   args: (P & ([] | any[])) | A
+// ): Job<Awaited<R>>;
+// export function work<F, A, P, R, O = "params">(
+//   handle: F & ((slug: Slug, args: A & ([] | any[])) => R),
+//   args: MiddlewareParameters<A>
+// ): Job<Awaited<R>>;
+
+// export function work<A, R, O = 1>(
+//   handle: ((...args: any) => any) & {
+//     options: {
+//       middleware: (handle: (...args: any) => any) => (args: A, slug: Slug) => R;
+//     };
+//   },
+//   ...args: A & AnyParams
+// ): R extends PromiseOption<infer R2> ? Job<R2> : Job<unknown>;
+// export function work<F, A, R, O = "no middleware [1]">(
+//   handle: F & ((...args: A & ([] | any[])) => R),
+//   ...args: Parameters<F & ((...args: A & ([] | any[])) => R)> extends [infer A0]
+//     ? [JobInputOption<A0>]
+//     : never
+// ): R extends PromiseJobOption<infer R2> ? Job<R2> : Job<unknown>;
+// export function work<F, A, R, O = "no middleware [...]">(
+//   handle: F & ((...args: A & ([]) => R),
+//   ...args: Parameters<F & ((...args: A & AnyParams) => R)>
+// ): R extends PromiseJobOption<infer R2>
+//   ? R2 extends void
+//     ? Job<VoidObject>
+//     : Job<R2 & Sluggable>
+//   : Job<unknown>;
+
+export function work<F, A, P, R1, R, O = "no middleware [...]">(
+  handle: F & ((...args: A & ([] | any[])) => R),
+  ...args: P & WorkParameters<A & ([] | any[])>
+): ReturnType<
+  F & ((...args: A & HandleParameters<P>) => R)
+> extends PromiseJobOption<infer R2>
+  ? R2 extends void
+    ? Job<VoidObject>
+    : R2 extends MaySlug
+    ? Job<R2>
+    : Job<R2 & Sluggable>
+  : Job<unknown>;
+
+// export function work<F, A, R>(
+//   handle: F & ((...args: A & ([] | any[])) => R),
+//   ...args: (A extends infer AA & ([] | any[]) ? AA : A) & ([] | any[])
+// ): R extends PromiseJobOption<infer R2> ? Job<R2> : Job<unknown>;
+// export function work<F, A, R>(
+//   handle: F & ((...args: A & ([] | any[])) => R),
+//   ...args: (A extends [] ? [] : never) & ([] | any[])
+// ): R extends PromiseJobOption<infer R2> ? Job<R2> : Job<unknown>;
+// export function work<Handle extends WorkDefinition>(
+//   handle: Handle,
+//   ...args: SimpleJobParameters<Handle>
+// ): SimpleJob<Handle>;
+// export function work<T extends (...args: any[]) => any>(
+// handle: T,
+// ...args: Parameters<T>
+// ): ReturnType<T> extends PromiseOption<infer T2> ? Job<T2> : Job<unknown>;
 export function work(handle: any, ...args: any[]): Job<any> {
   if (isJobFactory(handle)) {
     deprecate(
@@ -643,24 +745,9 @@ export function work(handle: any, ...args: any[]): Job<any> {
       (key) => `${key}: work(task(...), ...) is deprecated.`
     );
     return new WorkElement(handle.simpleTask, args) as SimpleJob<any>;
-    // return handle(...args) as Job<any>;
   }
-  return new WorkElement(handle as SimpleJobDefinition, args) as SimpleJob<any>;
-  return {
-    __handle: handle,
-    __input: args,
-    [SLUGIFY]() {
-      return getTask(handle).slug(args);
-    },
-  } as any;
+  return new WorkElement(handle as WorkDefinition, args) as SimpleJob<any>;
 }
-
-// export function bind<Handle extends SimpleJobDefinition>(
-//   handle: Handle,
-//   ...args: SimpleJobParameters<Handle>
-// ): SimpleJob<Handle>;
-// export function bind(...args: any): SimpleJob<any>;
-// export function bind(...args): SimpleJob<any> {}
 
 export async function runInput<T>(input: JobInputOption<T>): Promise<T> {
   const result = await run(input);
@@ -681,56 +768,6 @@ export async function runAllInputs<T extends [] | any[]>(
 ): Promise<AllInput<T>> {
   return (await Promise.all(input.map(runInput))) as any;
 }
-
-type JOutput = SimpleJob<
-  SimpleJobDefinition<any, any, PromiseOption<ReferenceObject<any>>>
->;
-type JReturn = SimpleJobHandleReturn<() => number>;
-const jjjj = (num: string) => Number(num);
-jjjj.options = {
-  before(args: [bigint]) {
-    return args;
-  },
-  after(output: number) {
-    return { output };
-  },
-};
-type J2 = SimpleJob<typeof jjjj>;
-type J3 = SimpleJobDefinitionInput<typeof jjjj>;
-type J4 = SimpleJobDefinitionOutput<typeof jjjj>;
-type J5 = typeof jjjj extends {
-  options?: SimpleJobOptions<any, infer BeforeInput, any>;
-}
-  ? { before: BeforeInput }
-  : never;
-type J6 = typeof jjjj extends SimpleJobDefinition<
-  SimpleJobHandle<infer HandleInput, any>,
-  any,
-  any
->
-  ? { handle: HandleInput }
-  : never;
-type J7 = typeof jjjj extends SimpleJobHandle<infer HandleInput, any>
-  ? HandleInput
-  : never;
-// const jj = work(jjjj, "1234");
-
-const j5 = (num: string) => Number(num);
-j5.options = {
-  middleware(
-    handle: (num: string) => number
-  ): ([num]: [bigint], slug: Slug) => { output: number } & MaySlug {
-    return ([num], slug) =>
-      overwriteObjectSlug({ output: handle(String(num)) }, slug);
-  },
-};
-const j55 = work(j5, 1n);
-
-const j6 = () => 1;
-const j66 = work(j6);
-
-const j7 = (num: string) => Number(num);
-const j77 = work(j7, "123");
 
 type Work<T = any> = Promise<ResultOption<T>>;
 
@@ -788,14 +825,12 @@ export async function run<J>(
       : P
     : J
 > {
-  // console.log("run", job);
   const parentContext = activeContext;
   try {
     if (isSimpleJob(job)) {
       const task = getTask(job.__handle);
       const slug = task.slug(job.__input);
       let contextCollection = findOrCreateContextCollection<J>(slug, job);
-      // console.log("run", slug, Boolean(contextCollection.work));
       let work = contextCollection.work;
       if (!work || !contextCollection.upToDate) {
         const jobContext: RunContext = createContext<J>(
@@ -836,29 +871,15 @@ export async function run<J>(
     if (isJob(job)) {
       const task = job.__task as Task<any>;
       const slug = Slug(job);
-      // console.log("begin", slug.__slug);
       let contextCollection = findOrCreateContextCollection<J>(slug, job);
       let work = contextCollection.work;
-      // if (!work) {
-      // let jobContext = contextMap.get(slug);
-      // let work = workMap.get(slug);
-      // let work = null as Work;
       if (!work || !contextCollection.upToDate) {
-        // let jobContext = contextMap.get(slug);
-        // if (!jobContext) {
         const jobContext: RunContext = createContext<J>(
           job,
           slug,
           contextCollection,
           parentContext
         );
-        // if (isCacheable(slug)) {
-        //   contextMap.set(slug, jobContext);
-        // }
-        // }
-        // if (parentContext) {
-        //   parentContext.dependencies.add(jobContext);
-        // }
         work = (async () => {
           try {
             await microtaskLock();
@@ -872,7 +893,6 @@ export async function run<J>(
             if (jobContext.guards) {
               await Promise.all(
                 Array.from(jobContext.guards.values(), (guardItem) => {
-                  // console.log("release guard", guardItem);
                   return guardItem.release();
                 })
               );
@@ -880,20 +900,13 @@ export async function run<J>(
           }
         })().then(result, resultError);
         jobContext.work = work;
-        // work.catch(e => {console.error('error', slug.__slug, e); throw e;}).then(() => console.log("finish", slug.__slug));
         if (isCacheable(slug)) {
-          // contextMap.set(slug, jobContext);
           contextCollection.main = jobContext;
-        } else {
-          // console.log("uncacheable", slug);
         }
       } else {
-        // console.log("copy", slug.__slug);
         createRepeatContext(job, slug, contextCollection, parentContext);
       }
-      const output = await work;
-      // console.log("finish", slug.__slug);
-      return output.unwrap();
+      return (await work).unwrap();
     }
     if (isPromise(job)) {
       const result = await job;
@@ -904,8 +917,6 @@ export async function run<J>(
     if (parentContext && isMaySlug(job)) {
       const slug = Slug(job);
       if (isDependency(slug)) {
-        // console.log(isJob(job), isOutput(Slug(job)), job);
-        // console.log(Slug(job));
         const contextCollection = findOrCreateContextCollection(slug, job);
         const jobContext = createRepeatContext(
           job,
@@ -914,12 +925,8 @@ export async function run<J>(
           parentContext
         );
         if (isCacheable(slug)) {
-          // contextMap.set(slug, jobContext);
           contextCollection.main = jobContext;
-        } else {
-          // console.log("uncacheable", slug);
         }
-        // parentContext.dependencies.add(job);
       }
     }
     return job as any;
@@ -932,8 +939,6 @@ export async function run<J>(
 export const getContext = (job: Sluggable) => contextMap.get(Slug(job));
 
 export const getThisContext = () => activeContext;
-
-// export const walkMapContext = <T>(context: RunContext, map: (context: RunContext, walkMap: (context: RunContext) => T[], path: string[], root: RunContext) => T) =>
 
 export interface DependencyTree {
   slug: Slug;
@@ -950,8 +955,6 @@ export const getDependencyTree = (job: Job): DependencyTree => ({
     .map((context) => context.slug)
     .map(getDependencyTree),
 });
-
-// const m = await run({});
 
 type JobPromiseFactory<T> = JobFactory<[Promise<T>], T>;
 
@@ -1045,15 +1048,6 @@ function findOrCreateContextCollection<J>(slug: Slug, job: J) {
   return contextCollection;
 }
 
-// const pp = await run(props({ data: json(source("{}")) }));
-
-// const v = await run(promise(Promise.resolve({ id: 0 })));
-
-// const g = await run(get(promise(Promise.resolve({ id: 0 })), "id"));
-
-// const t = await run(then(json(source("{}")), (obj) => ({ id: 1, ...obj })));
-
-// const clipsDefinition = await run(json(source("{}")));
 function isJob(value: unknown): value is Job {
   return Boolean(value && (value as Job).__task);
 }
@@ -1088,8 +1082,6 @@ export const addGuard = (guard: Guard) => {
 };
 
 export type ResourceFactory<T> = JobFactory<[], T>;
-
-// export const resource = <T>(handle: () => T): ResourceFactory<T> => {};
 
 export const initResource = task(
   <T>(resource: ResourceFactory<T>, value: T) => value,
@@ -1148,8 +1140,6 @@ export const announceChanges = (changes: (MaySlug | Slug)[]) => {
       for (const iteration of context.iterations) {
         iteration.upToDate = false;
       }
-      // context.upToDate = false;
-      // context.main = null;
     }
   }
 };

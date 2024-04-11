@@ -1,5 +1,5 @@
 import {
-  Job,
+  Work,
   JobDerivableInput,
   JobDerivableInputItem,
   JobFactory,
@@ -59,7 +59,7 @@ export const promise = task(
       return promiseSlug;
     },
   }
-) as Extract<<T>(input: PromiseLike<T>) => Job<JobOutput<T>>, JobFactory>;
+) as Extract<<T>(input: PromiseLike<T>) => Work<JobOutput<T>>, JobFactory>;
 
 export const all = task(
   async (input) => await run(Promise.all(input.map(run))),
@@ -80,7 +80,7 @@ export const all = task(
   }
 ) as <T extends [] | any[]>(
   input: JobDerivableInputItem<JobDerivableInput<T>>
-) => Job<JobOutput<T>>;
+) => Work<JobOutput<T>>;
 
 export const props = task(async (input) =>
   Object.fromEntries(
@@ -95,7 +95,7 @@ export const props = task(async (input) =>
   )
 ) as <T extends {}>(
   input: T
-) => Job<{
+) => Work<{
   [Key in keyof T]: T[Key] extends JobDerivable<infer Output> ? Output : T[Key];
 }>;
 
@@ -106,7 +106,7 @@ export const get = task(
   <Fields, Key extends keyof Fields>(
     input: JobDerivableInputItem<Fields>,
     key: Key
-  ) => Job<Fields[Key]>,
+  ) => Work<Fields[Key]>,
   JobFactory
 >;
 
@@ -165,9 +165,9 @@ export const call = task(
 ) as <F extends (...args: any[]) => any>(
   op: JobDerivableInputItem<FunctionObject<F> | F>,
   ...args: JobDerivableInput<Parameters<F>>
-) => Job<JobOutput<ReturnType<F>>>;
+) => Work<JobOutput<ReturnType<F>>>;
 
-export const onError = task((value, onerror: Job) => value, {
+export const onError = task((value, onerror: Work) => value, {
   name: "onError",
   deriveInput: async (derivableInput) => {
     // const onerror = await run(derivableInput[1]);
@@ -191,11 +191,11 @@ export const onError = task((value, onerror: Job) => value, {
 }) as <T1, T2>(
   value: JobDerivableInputItem<T1>,
   onerror:
-    | Job<FunctionObject<(error: any) => T2>>
+    | Work<FunctionObject<(error: any) => T2>>
     | FunctionObject<(error: any) => T2>
-    | Job<T2>
+    | Work<T2>
     | T2
-) => Job<T1 | T2>;
+) => Work<T1 | T2>;
 
 type Last<T extends any[]> = T extends []
   ? never
@@ -206,7 +206,7 @@ type Last<T extends any[]> = T extends []
   : never;
 
 export const after = task(
-  async (...jobs: Job[]) => {
+  async (...jobs: Work[]) => {
     // console.log("after");
     let output;
     for (const jobItem of jobs) {
@@ -221,20 +221,20 @@ export const after = task(
       return jobs;
     },
   }
-) as <Jobs extends [Job, ...Job[]] | Job[]>(
+) as <Jobs extends [Work, ...Work[]] | Work[]>(
   ...jobs: Jobs
-) => Job<DerivedJob<Last<Jobs>>>;
+) => Work<DerivedJob<Last<Jobs>>>;
 
 export const resolve = task((value: any) => value, { name: "resolve" }) as <T>(
   value: JobDerivableInputItem<T>
-) => Job<T>;
+) => Work<T>;
 
 export const reject = task(
   (error: any) => {
     throw error;
   },
   { name: "reject" }
-) as (error: any) => Job<never>;
+) as (error: any) => Work<never>;
 
 export const map = task(
   (items: any[], op: FunctionObject) => all(items.map(op.func)),
@@ -254,7 +254,7 @@ export const map = task(
       (value: T1, index: number, array: T1[]) => JobDerivableInputItem<T2>
     >
   >
-) => Job<T2[]>;
+) => Work<T2[]>;
 
 export const changedBy = task(
   (value, inputs) => {
@@ -270,7 +270,10 @@ export const changedBy = task(
       return slug`changedBy(${value},${SlugArray(inputs)})`;
     },
   }
-) as <T>(value: JobDerivableInputItem<T>, inputs: (MaySlug | Slug)[]) => Job<T>;
+) as <T>(
+  value: JobDerivableInputItem<T>,
+  inputs: (MaySlug | Slug)[]
+) => Work<T>;
 
 export const changes = task(
   (value, outputs) => {
@@ -289,4 +292,4 @@ export const changes = task(
 ) as <T>(
   value: JobDerivableInputItem<T>,
   outputs: (MaySlug | Slug)[]
-) => Job<T>;
+) => Work<T>;

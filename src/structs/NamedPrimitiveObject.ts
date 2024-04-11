@@ -1,7 +1,12 @@
-import { DEREFERENCE, ReferenceObject } from "../core/ref";
+import {
+  DEREFERENCE,
+  REFERS_TO,
+  ReferenceObject,
+  RefersObject,
+} from "../core/ref";
 import { MaySlug, SLUGIFY, slug } from "../core/slug";
 
-export interface NamedPrimitiveObject<T> extends MaySlug, ReferenceObject<T> {
+export interface NamedPrimitiveObject<T> extends MaySlug, RefersObject<T> {
   name: string;
   value: T;
 }
@@ -13,7 +18,7 @@ class NamedPrimitiveBase<T> implements NamedPrimitiveObject<T> {
     this.name = name;
     this.value = value;
   }
-  [DEREFERENCE]() {
+  [REFERS_TO]() {
     return this.value;
   }
   [SLUGIFY]() {
